@@ -4,16 +4,16 @@ import time
 import multiprocessing
 
 # File paths
-input_file = r"C:/Users/USER/Desktop/D2C Checker/URL Checker.xlsx"
-batch_folder = r"C:/Users/USER/Desktop/D2C Checker/Batches"
-final_output = r"C:/Users/USER/Desktop/D2C Checker/Final_Result.xlsx"
+input_file = r"./URL Checker.xlsx"
+batch_folder = r"./Batches"
+final_output = r"./Final_Result.xlsx"
 
 # Ensure batch folder exists
 os.makedirs(batch_folder, exist_ok=True)
 
 # Load Excel file
 df = pd.read_excel(input_file)
-batch_size = 5  # Number of URLs per batch
+batch_size = 10 # Number of URLs per batch
 num_batches = (len(df) // batch_size) + (1 if len(df) % batch_size > 0 else 0)  # Calculate total batches
 
 # Split the data into batches and save them
