@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import time
 import concurrent.futures
+import multiprocessing
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -100,7 +101,11 @@ def process_batch(batch_file):
     df = pd.read_excel(batch_file)
     
     for index, row in df.iterrows():
-        url = row['Site URL']
+        url = row.get('Site URL')
+        if not isinstance(url, str) or not url.startswith(('http://', 'https://')):
+            print(f"Skipping invalid URL: {url}")
+            continue
+
         has_videos, has_d2c, has_ecommerce, has_social_media, social_presence, instagram, tiktok = check_website_features(driver, url)
         
         df.at[index, 'D2C Presence'] = 'Yes' if has_d2c else 'No'
@@ -115,7 +120,11 @@ def process_batch(batch_file):
     driver.quit()
 
 # Function to manage the worker pool
-def run_worker_pool(batch_files, workers=4):
+def run_worker_pool(batch_files, workers=None):
+    if workers is None:
+        workers = max(2, multiprocessing.cpu_count() // 2)  # Auto-set workers to half the CPU cores (at least 2)
+    
+    print(f"🚀 Running with {workers} workers...")
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         executor.map(process_batch, batch_files)
 
@@ -124,7 +133,7 @@ if __name__ == "__main__":
     print("\n🚀 Processing batches in parallel...\n")
     start_time = time.time()
 
-    workers = 4  # Number of parallel workers
+    workers = max(2, multiprocessing.cpu_count())  # Use all available CPU cores for max speed
     run_worker_pool(batch_files, workers)
 
     print("\n✅ All batches processed. Merging results...\n")
